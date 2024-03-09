@@ -393,3 +393,137 @@ module axi_lite_master #
 
 endmodule
 
+
+**Testbench**
+
+
+`timescale 1ns/1ns
+
+module axi_lite_master_tb;
+
+   reg CLK = 0;
+   reg RESET_N;
+
+   parameter FREQUENCY = 50.0E6;
+   parameter clk_period = (1/FREQUENCY)/1e-9;
+
+   always begin
+      CLK = #(clk_period/2) ~CLK;
+   end
+
+   initial begin
+      RESET_N = 0;
+      #100 RESET_N = 1;
+   end
+
+   parameter AXI_ADDR_WIDTH = 32;
+   parameter AXI_DATA_WIDTH = 32;
+
+   wire [AXI_ADDR_WIDTH-1:0] M_AXI_AWADDR;
+   wire [2:0] M_AXI_AWPROT;
+   wire M_AXI_AWVALID;
+   wire M_AXI_AWREADY;
+
+   // w
+   wire [AXI_DATA_WIDTH-1:0] M_AXI_WDATA;
+   wire [AXI_DATA_WIDTH/8-1:0] M_AXI_WSTRB;
+   wire M_AXI_WVALID;
+   wire M_AXI_WREADY;
+
+   // b resp
+   wire [1:0] M_AXI_BRESP;
+   wire M_AXI_BVALID;
+   wire M_AXI_BREADY;
+
+   // ar
+   wire [AXI_ADDR_WIDTH-1:0] M_AXI_ARADDR;
+   wire [2:0] M_AXI_ARPROT;
+   wire M_AXI_ARVALID;
+   wire M_AXI_ARREADY;
+
+   // r
+   wire [AXI_DATA_WIDTH-1:0] M_AXI_RDATA;
+   wire [1:0] M_AXI_RRESP;
+   wire M_AXI_RVALID;
+   wire M_AXI_RREADY;
+
+   reg init_transaction;
+   reg [31:0] init_counter;
+
+   always @(posedge CLK) begin
+      if (~RESET_N) begin
+         init_transaction <= 0;
+         init_counter <= 0;
+      end
+      else begin
+         init_counter <= init_counter + 1;
+         init_transaction <= 0;
+
+         if (init_counter == 10) begin
+            init_transaction <= 1;
+         end
+      end
+   end
+
+   axi_lite_master axi_lite_master_i (
+      .AXI_ADDR_WIDTH(32),
+      .AXI_DATA_WIDTH(32),
+      .init_transaction(init_transaction),
+      .M_AXI_ACLK(CLK),
+      .M_AXI_ARESETN(RESET_N),
+      // aw
+      .M_AXI_AWADDR(M_AXI_AWADDR),
+      .M_AXI_AWPROT(M_AXI_AWPROT),
+      .M_AXI_AWVALID(M_AXI_AWVALID),
+      .M_AXI_AWREADY(M_AXI_AWREADY),
+      // w
+      .M_AXI_WDATA(M_AXI_WDATA),
+      .M_AXI_WSTRB(M_AXI_WSTRB),
+      .M_AXI_WVALID(M_AXI_WVALID),
+      .M_AXI_WREADY(M_AXI_WREADY),
+      // b resp
+      .M_AXI_BRESP(M_AXI_BRESP),
+      .M_AXI_BVALID(M_AXI_BVALID),
+      .M_AXI_BREADY(M_AXI_BREADY),
+      // ar
+      .M_AXI_ARADDR(M_AXI_ARADDR),
+      .M_AXI_ARPROT(M_AXI_ARPROT),
+      .M_AXI_ARVALID(M_AXI_ARVALID),
+      .M_AXI_ARREADY(M_AXI_ARREADY),
+      // r
+      .M_AXI_RDATA(M_AXI_RDATA),
+      .M_AXI_RRESP(M_AXI_RRESP),
+      .M_AXI_RVALID(M_AXI_RVALID),
+      .M_AXI_RREADY(M_AXI_RREADY)
+   );
+
+   // Zynq PS wrapper
+   // Initialises PS subsystem
+
+   axi_vdma_0 axi_vdma_i (
+      .s_axi_lite_aclk(CLK),
+      .m_axi_mm2s_aclk(CLK),
+      .m_axis_mm2s_aclk(CLK),
+      .m_axi_s2mm_aclk(CLK),
+      .s_axis_s2mm_aclk(CLK),
+      .axi_resetn(RESET_N),
+      .s_axi_lite_awvalid(M_AXI_AWVALID),
+      .s_axi_lite_awready(M_AXI_AWREADY),
+      .s_axi_lite_awaddr(M_AXI_AWADDR),
+      .s_axi_lite_wvalid(M_AXI_WVALID),
+      .s_axi_lite_wready(M_AXI_WREADY),
+      .s_axi_lite_wdata(M_AXI_WDATA),
+      .s_axi_lite_bresp(M_AXI_BRESP),
+      .s_axi_lite_bvalid(M_AXI_BVALID),
+      .s_axi_lite_bready(M_AXI_BREADY),
+      .s_axi_lite_arvalid(M_AXI_ARVALID),
+      .s_axi_lite_arready(M_AXI_ARREADY),
+      .s_axi_lite_araddr(M_AXI_ARADDR),
+      .s_axi_lite_rvalid(M_AXI_RVALID),
+      .s_axi_lite_rready(M_AXI_RREADY),
+      .s_axi_lite_rdata(M_AXI_RDATA),
+      .s_axi_lite_rresp(M_AXI_RRESP)
+   );
+
+endmodule
+

@@ -1,7 +1,9 @@
+
 module ahb_top_tb();
 reg hclk;
 reg hresetn;
 reg enable;
+reg [31:0]addr;
 reg [31:0] data_in_a;
 reg [31:0] data_in_b;
 reg write;
@@ -19,7 +21,7 @@ initial
   end
 
 always #5 hclk = ~ hclk;
-task reset dut();
+task reset_dut();
   begin
     @(negedge hclk)
       hresetn = 0;
@@ -28,7 +30,7 @@ task reset dut();
   end
 endtask
 
-task write_dut (input [1:0] sel, input [31:0] address_input, input [31:0] a, input [31:0] b);
+task write_dut(input [1:0]sel, input [31:0]address, input [31:0]a, input [31:0]b);
   begin
     @(negedge hclk)
       slave_sel = sel;
@@ -46,7 +48,7 @@ endtask
 task read_dut(input [1:0] sel, input [31:0] address);
   begin
     @(negedge hclk)
-    enable = 1'bl;
+    enable = 1'b1;
     slave_sel = sel;
     addr = address;
     @(negedge hclk)
@@ -55,7 +57,7 @@ task read_dut(input [1:0] sel, input [31:0] address);
     write = 1'b0;
     @(negedge hclk)
     write = 1'b0;
-    @(negedge clk)
+    @(negedge hclk)
     enable = 1'b0;
   end
 endtask
@@ -76,8 +78,8 @@ begin
     
     //slave4
       write_dut (2'b11,32'd4, 32'd11, 32'd13); 
-      read dut (2'b11,32'd4);
+      read_dut (2'b11,32'd4);
 end
 
-ahb_top dut (.hclk(hclk),.hresetn (hresetn), enable (enable), data_in_a(data_in_a) data_in_b(data_in_b),.addr(addr),.write(write), slave_sel (slave_sel) ,.data_out (data_out));
+ahb_top dut (.hclk(hclk),.hresetn(hresetn), .enable(enable), .data_in_a(data_in_a), .data_in_b(data_in_b), .addr(addr), .write(write), .slave_sel(slave_sel), .data_out(data_out));
 endmodule

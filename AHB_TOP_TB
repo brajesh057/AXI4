@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 
 module ahb_top_tb();
 reg hclk;
@@ -6,7 +7,7 @@ reg enable;
 reg [31:0]addr;
 reg [31:0] data_in_a;
 reg [31:0] data_in_b;
-reg write;
+reg hwrite;
 reg [1:0] slave_sel;
 wire [31:0] data_out;
 initial
@@ -16,7 +17,7 @@ initial
     enable = 1'b0;
     data_in_a = 32'd0;
     data_in_b = 32'd0;
-    write = 1'b0;
+    hwrite = 1'b0;
     slave_sel = 1'b0;
   end
 
@@ -30,7 +31,7 @@ task reset_dut();
   end
 endtask
 
-task write_dut(input [1:0]sel, input [31:0]address, input [31:0]a, input [31:0]b);
+task hwrite_dut(input [1:0]sel, input [31:0]address, input [31:0]a, input [31:0]b);
   begin
     @(negedge hclk)
       slave_sel = sel;
@@ -39,7 +40,7 @@ task write_dut(input [1:0]sel, input [31:0]address, input [31:0]a, input [31:0]b
     @(negedge hclk)
       data_in_a = a;
       data_in_b = b;
-      write = 1'b1;
+      hwrite = 1'b1;
     @(negedge hclk)
       enable = 1'b0;
   end
@@ -52,11 +53,11 @@ task read_dut(input [1:0] sel, input [31:0] address);
     slave_sel = sel;
     addr = address;
     @(negedge hclk)
-    write = 1'b0;
+    hwrite = 1'b0;
     @(negedge hclk)
-    write = 1'b0;
+    hwrite = 1'b0;
     @(negedge hclk)
-    write = 1'b0;
+    hwrite = 1'b0;
     @(negedge hclk)
     enable = 1'b0;
   end
@@ -65,21 +66,21 @@ endtask
 initial
 begin
     //slave 1
-      write_dut (2'b00,32'd1,32'd5, 32'd10);
+      hwrite_dut (2'b00,32'd1,32'd5, 32'd10);
       read_dut (2'b00,32'd1);
     
     //slave2
-      write_dut (2'b01,32'd2, 32'd11,32'd13); 
+      hwrite_dut (2'b01,32'd2, 32'd11,32'd13); 
       read_dut (2'b01,32'd2);
     
     //slave3
-      write_dut (2'b10,32'd3, 32'd17, 32'd13); 
+      hwrite_dut (2'b10,32'd3, 32'd17, 32'd13); 
       read_dut (2'b10,32'd3);
     
     //slave4
-      write_dut (2'b11,32'd4, 32'd11, 32'd13); 
+      hwrite_dut (2'b11,32'd4, 32'd11, 32'd13); 
       read_dut (2'b11,32'd4);
 end
 
-ahb_top dut (.hclk(hclk),.hresetn(hresetn), .enable(enable), .data_in_a(data_in_a), .data_in_b(data_in_b), .addr(addr), .write(write), .slave_sel(slave_sel), .data_out(data_out));
+ahb_top dut (.hclk(hclk),.hresetn(hresetn), .enable(enable), .data_in_a(data_in_a), .data_in_b(data_in_b), .addr(addr), .hwrite(hwrite), .slave_sel(slave_sel), .data_out(data_out));
 endmodule

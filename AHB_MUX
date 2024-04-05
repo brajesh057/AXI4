@@ -1,4 +1,4 @@
-module multiplexer (
+module ahb_mux (
     input [31:0] hrdata_1,
     input [31:0] hrdata_2,
     input [31:0] hrdata_3,

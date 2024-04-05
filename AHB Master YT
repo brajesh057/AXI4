@@ -41,7 +41,7 @@ output reg[3:0]hprot,
 output reg[1:0]htrans,
 output reg hready,
 output reg[31:0]hwdata,
-output reg[32:0]dout
+output reg[31:0]dout
 );
 
 //parameters used in State Machine

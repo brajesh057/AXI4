@@ -1,4 +1,4 @@
-module decoder(
+module ahb_decoder(
   input [1:0] sel,
   output reg hsel_1,
   output reg hsel_2,
